@@ -27,7 +27,7 @@
     "inquirer": "^7.2.0",
     "inquirer-autocomplete-prompt": "^1.0.2",
     "lodash": "^4.17.15",
-    "minimist": "^1.2.0",
+    "minimist": "^1.2.3",
     "pg": "^8.2.1",
     "pluralize": "^8.0.0",
     "pretty": "^2.0.0",
