@@ -1,13 +1,13 @@
 {
-  "name": "component-generator",
+  "name": "stub-generator",
   "version": "1.0.0",
   "description": "Component generator",
   "main": "index.js",
   "bin": {
-    "gen": "./index.js"
+    "stubgen": "./index.js"
   },
   "scripts": {
-    "generate": "echo \"Error: no test specified\" && exit 1"
+    "stubgen": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "Vue",
@@ -26,6 +26,7 @@
     "figlet": "^1.4.0",
     "inquirer": "^7.2.0",
     "inquirer-autocomplete-prompt": "^1.0.2",
+    "inquirer-file-tree-selection-prompt": "^1.0.6",
     "lodash": "^4.17.15",
     "minimist": "^1.2.3",
     "pg": "^8.2.1",
