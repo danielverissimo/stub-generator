@@ -11,7 +11,7 @@ exports.builder = {
 }
 exports.handler = function (argv) {
   const config = new Configstore('gen-config')
-  if (files.directoryExists(argv.path)) {
+  if (files.pathExists(argv.path)) {
     config.set('template-path', argv.path)
   } else {
     console.log(chalk.red("\nError: Path don't exist!\n"))

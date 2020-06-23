@@ -9,7 +9,7 @@ clear()
 console.log(
   chalk.yellow(
     figlet.textSync(
-      'Generator!',
+      'Stub Gen!',
       {
         font: 'Ghost',
         horizontalLayout: 'default',

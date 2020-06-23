@@ -17,7 +17,7 @@ exports.builder = {
   }
 }
 exports.handler = function (argv) {
-  if (!files.directoryExists(argv.output)) {
+  if (!files.pathExists(argv.output)) {
     console.log(chalk.red("\nOutput path don't exist!\n"))
     return
   }
@@ -59,7 +59,12 @@ exports.handler = function (argv) {
                 database
                   .getTableData(databaseConfig, schema, table)
                   .then(tableData => {
-                    exports.listTemplateFiles(argv.output, table, tableData)
+                    exports.listTemplateFiles(
+                      argv.output,
+                      table,
+                      tableData,
+                      response.source_type
+                    )
                   })
               })
             })
@@ -77,7 +82,8 @@ exports.handler = function (argv) {
                   exports.listTemplateFiles(
                     argv.output,
                     entity,
-                    JSON.parse(data)
+                    JSON.parse(data),
+                    response.source_type
                   )
                 } catch (err) {
                   util.printError(
@@ -90,7 +96,12 @@ exports.handler = function (argv) {
             const entity = files.getShortFileName(path)
             files.readFile(path).then(data => {
               try {
-                exports.listTemplateFiles(argv.output, entity, JSON.parse(data))
+                exports.listTemplateFiles(
+                  argv.output,
+                  entity,
+                  JSON.parse(data),
+                  response.source_type
+                )
               } catch (err) {
                 util.printError('\nError to convert datasource file to JSON.\n')
               }
@@ -102,29 +113,63 @@ exports.handler = function (argv) {
   }
 }
 
-exports.listTemplateFiles = function (output, entity, entityData) {
+exports.listTemplateFiles = function (
+  outputTargetPath,
+  entity,
+  entityData,
+  sourceType
+) {
   // List all template dirs base on template-path config
   files.listFiles(config.get('template-path')).then(templatesDir => {
-    console.log('templatesDir...')
-
     if (templatesDir && templatesDir.length > 0) {
       inquirer.chooseTemplate(templatesDir).then(data => {
         // List all template files inside template dir selected
         const templatePath = config.get('template-path') + '/' + data.template
 
-        files.listFiles(templatePath, '.js').then(files => {
+        files.listFiles(templatePath, '.stub').then(files => {
           files.forEach(file => {
             // Dinamically call template js file
-            const filePath = templatePath + '/' + file
-            const jsFile = require(filePath)
-            try {
-              jsFile.run(__dirname, templatePath, output, entity, entityData) // Execute js file run function
-            } catch (err) {
-              console.log(
-                chalk.red(
-                  `\nCannot call run function on ${file}\nCause: \n${err}`
-                )
+            const stubPath = templatePath + '/' + file
+            const fileArray = file.split('.')
+            if (sourceType === 'file' && fileArray.length !== 3) {
+              util.printError(
+                `Incorrect file (${file}) name: Ex: file.{extension}.stub`
               )
+            } else {
+              const jfFileName = `${fileArray[0]}.js`
+              const targetName = `${fileArray[0]}.${fileArray[1]}`
+              const filePath = templatePath + '/' + jfFileName
+              let jsFile = null
+              try {
+                const jsFile = require(filePath)
+              } catch (err) {
+                // Replace based on source data
+                util.replaceAllData(
+                  stubPath,
+                  outputTargetPath,
+                  targetName,
+                  entity,
+                  entityData
+                )
+              }
+
+              if (jsFile !== null) {
+                try {
+                  jsFile.run(
+                    __dirname,
+                    templatePath,
+                    outputTarget,
+                    entity,
+                    entityData
+                  ) // Execute js file run function
+                } catch (err) {
+                  console.log(
+                    chalk.red(
+                      `\nCannot call run function on ${file}\nCause: \n${err}`
+                    )
+                  )
+                }
+              }
             }
           })
         })
