@@ -115,8 +115,8 @@ exports.handler = function (argv) {
 
 exports.listTemplateFiles = function (
   outputTargetPath,
-  entity,
-  entityData,
+  entityName,
+  entityDataList,
   sourceType
 ) {
   // List all template dirs base on template-path config
@@ -143,13 +143,14 @@ exports.listTemplateFiles = function (
               try {
                 const jsFile = require(filePath)
               } catch (err) {
-                // Replace based on source data
+                // Replace all template content based on source data
                 util.replaceAllData(
+                  templatePath,
                   stubPath,
                   outputTargetPath,
                   targetName,
-                  entity,
-                  entityData
+                  entityName,
+                  entityDataList
                 )
               }
 
@@ -159,8 +160,8 @@ exports.listTemplateFiles = function (
                     __dirname,
                     templatePath,
                     outputTarget,
-                    entity,
-                    entityData
+                    entityName,
+                    entityDataList
                   ) // Execute js file run function
                 } catch (err) {
                   console.log(
