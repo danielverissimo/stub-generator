@@ -3,6 +3,7 @@ const chalk = require('chalk')
 const clear = require('clear')
 const figlet = require('figlet')
 const util = require('../lib/util')
+const replace = require('../lib/replace')
 const files = require('../lib/files')
 const inquirer = require('../lib/inquirer')
 const database = require('../lib/databases/database')
@@ -144,7 +145,7 @@ exports.listTemplateFiles = function (
                 const jsFile = require(filePath)
               } catch (err) {
                 // Replace all template content based on source data
-                util.replaceAllData(
+                replace.replaceAllData(
                   templatePath,
                   stubPath,
                   outputTargetPath,
