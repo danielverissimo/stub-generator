@@ -2,6 +2,7 @@ const Configstore = require('configstore')
 const chalk = require('chalk')
 const clear = require('clear')
 const figlet = require('figlet')
+const path = require('path')
 const util = require('../lib/util')
 const replace = require('../lib/replace')
 const files = require('../lib/files')
@@ -74,8 +75,8 @@ exports.handler = function (argv) {
       } else {
         //
         inquirer.getSourceDataPath().then(response => {
-          const path = response.source_dir_path
-          if (!files.isFile(path)) {
+          const sourcePath = response.source_dir_path
+          if (!files.isFile(sourcePath)) {
             inquirer.getSourceData(response.source_dir_path).then(response => {
               const entity = files.getShortFileName(response.source_path)
               files.readFile(response.source_path).then(data => {
@@ -94,8 +95,8 @@ exports.handler = function (argv) {
               })
             })
           } else {
-            const entity = files.getShortFileName(path)
-            files.readFile(path).then(data => {
+            const entity = files.getShortFileName(sourcePath)
+            files.readFile(sourcePath).then(data => {
               try {
                 exports.listTemplateFiles(
                   argv.output,
@@ -127,53 +128,72 @@ exports.listTemplateFiles = function (
         // List all template files inside template dir selected
         const templatePath = config.get('template-path') + '/' + data.template
 
-        files.listFiles(templatePath, '.stub').then(files => {
-          files.forEach(file => {
-            // Dinamically call template js file
-            const stubPath = templatePath + '/' + file
-            const fileArray = file.split('.')
-            if (sourceType === 'file' && fileArray.length !== 3) {
-              util.printError(
-                `Incorrect file (${file}) name: Ex: file.{extension}.stub`
-              )
-            } else {
-              const jfFileName = `${fileArray[0]}.js`
-              const targetName = `${fileArray[0]}.${fileArray[1]}`
-              const filePath = templatePath + '/' + jfFileName
-              let jsFile = null
-              try {
-                const jsFile = require(filePath)
-              } catch (err) {
-                // Replace all template content based on source data
-                replace.replaceAllData(
-                  templatePath,
-                  stubPath,
-                  outputTargetPath,
-                  targetName,
-                  entityName,
-                  entityDataList
-                )
-              }
+        let fileArray = []
+        fileArray = files.listRecursiveFiles(templatePath, '.stub', fileArray)
+        fileArray.forEach(filePath => {
+          // Dinamically call template js file
+          const file = files.getFileName(filePath)
+          const internalPath = filePath.replace(`/${file}`, '')
+          let stubPath = ''
+          if (internalPath !== file) {
+            stubPath = path.join(templatePath, internalPath, file)
+          } else {
+            stubPath = path.join(templatePath, file)
+          }
 
-              if (jsFile !== null) {
-                try {
-                  jsFile.run(
-                    __dirname,
-                    templatePath,
-                    outputTarget,
-                    entityName,
-                    entityDataList
-                  ) // Execute js file run function
-                } catch (err) {
-                  console.log(
-                    chalk.red(
-                      `\nCannot call run function on ${file}\nCause: \n${err}`
-                    )
-                  )
-                }
-              }
+          const fileArray = file.split('.')
+          if (sourceType === 'file' && fileArray.length !== 3) {
+            util.printError(
+              `Incorrect file (${file}) name: Ex: file.{extension}.stub`
+            )
+          } else {
+            let jfFileName = ''
+            if (internalPath !== file) {
+              jfFileName = path.join(internalPath, fileArray[0]) + '.js'
+            } else {
+              jfFileName = `${fileArray[0]}.js`
             }
-          })
+            const targetName = `${fileArray[0]}.${fileArray[1]}`
+            const filePath = path.join(templatePath, jfFileName)
+
+            let jsFile = null
+            try {
+              jsFile = require(filePath)
+            } catch (err) {}
+
+            // Replace all template content based on source data
+            replace
+              .replaceAllData(
+                templatePath,
+                stubPath,
+                internalPath !== file ? internalPath : '',
+                outputTargetPath,
+                targetName,
+                entityName,
+                entityDataList
+              )
+              .then(result => {
+                if (result && jsFile !== null) {
+                  try {
+                    jsFile.run(
+                      __dirname,
+                      templatePath,
+                      internalPath !== file ? internalPath : '',
+                      targetName,
+                      outputTargetPath,
+                      entityName,
+                      entityDataList
+                    ) // Execute js file run function
+                  } catch (err) {
+                    console.log(
+                      chalk.red(
+                        `\nCannot call run function on ${file}\nCause: \n${err}`
+                      )
+                    )
+                  }
+                }
+              })
+          }
         })
       })
     } else {
