@@ -28,7 +28,7 @@
     "inquirer-autocomplete-prompt": "^1.0.2",
     "inquirer-file-tree-selection-prompt": "^1.0.6",
     "js-beautify": "^1.11.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "lower-case": "^2.0.1",
     "minimist": "^1.2.3",
     "pg": "^8.2.1",
