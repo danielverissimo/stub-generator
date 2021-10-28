@@ -175,15 +175,24 @@ exports.listTemplateFiles = function (
               .then(result => {
                 if (result && jsFile !== null) {
                   try {
-                    jsFile.run(
-                      __dirname,
-                      templatePath,
-                      internalPath !== file ? internalPath : '',
-                      targetName,
+                    const completeOutputPath = path.join(
                       outputTargetPath,
                       entityName,
-                      entityDataList
-                    ) // Execute js file run function
+                      internalPath
+                    )
+
+                    const params = {
+                      pluginPath: __dirname,
+                      templatePath: templatePath,
+                      internalPath: internalPath !== file ? internalPath : '',
+                      targetName: targetName,
+                      outputTargetPath: outputTargetPath,
+                      entityName: entityName,
+                      entityDataList: entityDataList,
+                      completeOutputPath: completeOutputPath
+                    }
+
+                    jsFile.run(params) // Execute js file run function
                   } catch (err) {
                     console.log(
                       chalk.red(
