@@ -30,7 +30,7 @@
     "js-beautify": "^1.11.0",
     "lodash": ">=4.17.19",
     "lower-case": "^2.0.1",
-    "minimist": "^1.2.3",
+    "minimist": "^1.2.6",
     "pg": "^8.2.1",
     "pluralize": "^8.0.0",
     "pretty": "^2.0.0",
